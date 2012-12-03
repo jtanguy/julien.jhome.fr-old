@@ -15,13 +15,17 @@
 - PhD CIFRE
 - Publications
 - Teaching
-- links to blog posts listed as teaching
 
 ## Blog
 
 - Archive
 - Tag pages
+- Each blog post should have a TL;DR for RSS
 
 ## Projects
 
 - Each project page, linked to the project git repository. If a hakyll-page is present, use it to generate the project site
+
+# Ignored directories
+
+- doc
