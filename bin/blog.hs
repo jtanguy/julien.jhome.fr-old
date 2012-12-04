@@ -31,6 +31,12 @@ main = hakyllWith config $ do
              >>> applyTemplateCompiler "templates/master.html"
              >>> relativizeUrlsCompiler
 
+     -- Render RSS feed
+    match "rss.xml" $ route idRoute
+    create "rss.xml" $ requireAll_ "posts/*"
+            >>> renderRss feedConfiguration
+
+
     -- Static pages are located in pages/
     match "pages/*" $ do
         route $ gsubRoute "pages/" (const "") `composeRoutes` setExtension "html"
@@ -50,5 +56,14 @@ config :: HakyllConfiguration
 config = defaultHakyllConfiguration {
     deployCommand = " rsync --checksum -ave 'ssh' \
                     \_site/* jtanguy@jhome.fr:sites/julien.jhome.fr"
+    }
+
+feedConfiguration :: FeedConfiguration
+feedConfiguration = FeedConfiguration
+    { feedTitle = "jtanguy :: Blogger"
+    , feedDescription = "Thoughts about random cs-related things."
+    , feedAuthorName = "Julien Tanguy"
+    , feedAuthorEmail = "julien.tanguy@jhome.fr"
+    , feedRoot = "http://julien.jhome.fr"
     }
 
