@@ -21,6 +21,16 @@ main = hakyllWith config $ do
             >>> applyTemplateCompiler "templates/master.html"
             >>> relativizeUrlsCompiler
 
+    -- Blog archive
+    match "archive.html" $ do
+        route idRoute
+        create "archive.html" $ constA mempty
+             >>> arr (setField "title" "Blog archive")
+             >>> setFieldPageList recentFirst "templates/archive-item.html" "posts" "posts/*"
+             >>> applyTemplateCompiler "templates/archive.html"
+             >>> applyTemplateCompiler "templates/master.html"
+             >>> relativizeUrlsCompiler
+
     -- Static pages are located in pages/
     match "pages/*" $ do
         route $ gsubRoute "pages/" (const "") `composeRoutes` setExtension "html"
