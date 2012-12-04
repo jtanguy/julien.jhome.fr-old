@@ -26,6 +26,7 @@ main = hakyllWith config $ do
 
 config :: HakyllConfiguration
 config = defaultHakyllConfiguration {
-    deployCommand = ""
+    deployCommand = " rsync --checksum -ave 'ssh' \
+                    \_site/* jtanguy@jhome.fr:sites/julien.jhome.fr"
     }
 
