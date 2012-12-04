@@ -4,11 +4,22 @@ module Main where
 
 import Control.Arrow ((>>>), arr)
 import Data.Monoid (mempty, mconcat)
+import System.Locale (iso8601DateFormat)
 
 import Hakyll
 
 main :: IO ()
 main = hakyllWith config $ do
+
+    -- Blog posts are under posts/
+    match "posts/*" $ do
+        route $ setExtension "html"
+        compile $ pageCompiler
+            >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
+            >>> arr (renderDateField "machinedate" (iso8601DateFormat Nothing) "")
+            >>> applyTemplateCompiler "templates/article.html"
+            >>> applyTemplateCompiler "templates/master.html"
+            >>> relativizeUrlsCompiler
 
     -- Static pages are located in pages/
     match "pages/*" $ do
@@ -17,11 +28,12 @@ main = hakyllWith config $ do
             >>> applyTemplateCompiler "templates/master.html"
             >>> relativizeUrlsCompiler
 
-    -- css
+    -- CSS
     match "css/*" $ do
         route idRoute
         compile compressCssCompiler
 
+    -- Templates
     match "templates/*" $ compile templateCompiler
 
 config :: HakyllConfiguration
