@@ -17,6 +17,7 @@ main = hakyllWith config $ do
         compile $ pageCompiler
             >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
             >>> arr (renderDateField "machinedate" (iso8601DateFormat Nothing) "")
+            >>> renderTagsField "prettytags" tagIdentifier
             >>> applyTemplateCompiler "templates/article.html"
             >>> applyTemplateCompiler "templates/master.html"
             >>> relativizeUrlsCompiler
@@ -30,6 +31,16 @@ main = hakyllWith config $ do
              >>> applyTemplateCompiler "templates/archive.html"
              >>> applyTemplateCompiler "templates/master.html"
              >>> relativizeUrlsCompiler
+
+    -- Tags
+    create "tags" $ requireAll "posts/*" (\_ ps -> readTags ps :: Tags String)
+
+    -- Add a tag list compiler for every tag
+    match "tags/*" $ route $ setExtension ".html"
+    metaCompile $ require_ "tags"
+        >>> arr tagsMap
+        >>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))
+
 
      -- Render RSS feed
     match "rss.xml" $ route idRoute
@@ -51,6 +62,24 @@ main = hakyllWith config $ do
 
     -- Templates
     match "templates/*" $ compile templateCompiler
+
+  where
+    tagIdentifier = fromCapture "tags/*"
+
+
+-- * Auxiliary compilers
+makeTagList :: String -> [Page String] -> Compiler () (Page String)
+makeTagList tag posts = constA posts
+        >>> pageListCompiler recentFirst "templates/archive-item.html"
+        >>> arr (copyBodyToField "posts" . fromBody)
+        >>> arr (setField "title" ("Posts tagged as " ++ tag))
+        >>> applyTemplateCompiler "templates/archive.html"
+        >>> applyTemplateCompiler "templates/master.html"
+        >>> relativizeUrlsCompiler
+
+
+
+-- * Configuration
 
 config :: HakyllConfiguration
 config = defaultHakyllConfiguration {
