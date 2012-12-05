@@ -52,6 +52,10 @@ main = hakyllWith config $ do
     match "pages/*" $ do
         route $ gsubRoute "pages/" (const "") `composeRoutes` setExtension "html"
         compile $ pageCompiler
+            >>> byPattern (arr id)
+                [ ("pages/index.md", addRelatedToAs "posts/*" "Recent blog entries")
+                , ("pages/research.md", addRelatedToAs "tags/research" "Related recent blog entries")
+                ]
             >>> applyTemplateCompiler "templates/master.html"
             >>> relativizeUrlsCompiler
 
@@ -77,15 +81,21 @@ makeTagList tag posts = constA posts
         >>> applyTemplateCompiler "templates/master.html"
         >>> relativizeUrlsCompiler
 
+addRelatedToAs :: Pattern (Page String) -> String -> Compiler (Page String) (Page String)
+addRelatedToAs p t = setFieldPageList (take newestEntries . recentFirst) "templates/archive-item.html" "posts" p
+        >>> arr (setField "related" t)
+        >>> applyTemplateCompiler "templates/related.html"
 
 
 -- * Configuration
-
 config :: HakyllConfiguration
 config = defaultHakyllConfiguration {
     deployCommand = " rsync --checksum -ave 'ssh' \
                     \_site/* jtanguy@jhome.fr:sites/julien.jhome.fr"
     }
+
+newestEntries :: Int
+newestEntries = 3
 
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
