@@ -1,7 +1,6 @@
 ---
 title: Making my blog
 author: Julien Tanguy
-date: 2012-12-04
 description: Process of creating this site and blog.
 tags: haskell
 ---
