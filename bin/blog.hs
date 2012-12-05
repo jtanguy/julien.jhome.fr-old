@@ -54,7 +54,7 @@ main = hakyllWith config $ do
         compile $ pageCompiler
             >>> byPattern (arr id)
                 [ ("pages/index.md", addRelatedToAs "posts/*" "Recent blog entries")
-                , ("pages/research.md", addRelatedToAs "tags/research" "Related recent blog entries")
+--              , ("pages/research.md", addRelatedToAs "tags/research" "Related recent blog entries")
                 ]
             >>> applyTemplateCompiler "templates/master.html"
             >>> relativizeUrlsCompiler
