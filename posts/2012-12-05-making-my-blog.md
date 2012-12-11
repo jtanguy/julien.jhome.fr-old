@@ -189,5 +189,7 @@ I would like to go more in details about how I ended up with this solution --- I
 
 # The future
 
-For now I have a satisfying working blog, but I would like to add automatic references, including an compiling the bibliography if there is a `.bib` file with the same name as the current page. I will also eventually put the source code of this blog on github.
+For now I have a satisfying working blog, but I would like to add automatic references, including an compiling the bibliography if there is a `.bib` file with the same name as the current page. ~~I will also eventually put the source code of this blog on github.~~
+
+**Update :** The source code of this blog is [on github](http://github.com/jtanguy/julien.jhome.fr)
 
