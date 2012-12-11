@@ -17,6 +17,8 @@ main = hakyllWith config $ do
         compile $ pageCompiler
             >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
             >>> arr (renderDateField "machinedate" (iso8601DateFormat Nothing) "")
+            >>> renderModificationTime "updated" "%B %e, %Y"
+            >>> renderModificationTime "machineupdated" (iso8601DateFormat Nothing)
             >>> renderTagsField "prettytags" tagIdentifier
             >>> applyTemplateCompiler "templates/article.html"
             >>> applyTemplateCompiler "templates/master.html"
