@@ -15,14 +15,8 @@ main = hakyllWith config $ do
     match "posts/*" $ do
         route $ setExtension "html"
         compile $ pageCompiler
-            >>> arr (renderDateField "date" "%B %e, %Y" "Date unknown")
-            >>> arr (renderDateField "machinedate" (iso8601DateFormat Nothing) "")
-            >>> renderModificationTime "updated" "%B %e, %Y"
-            >>> renderModificationTime "machineupdated" (iso8601DateFormat Nothing)
-            >>> renderTagsField "prettytags" tagIdentifier
-            >>> applyTemplateCompiler "templates/article.html"
-            >>> applyTemplateCompiler "templates/master.html"
-            >>> relativizeUrlsCompiler
+             >>> articlePageCompiler
+             >>> pageLayoutCompiler
 
     -- Blog archive
     match "archive.html" $ do
@@ -31,9 +25,7 @@ main = hakyllWith config $ do
              >>> arr (setField "title" "Blog archive")
              >>> setFieldPageList recentFirst "templates/archive-item.html" "posts" "posts/*"
              >>> applyTemplateCompiler "templates/archive.html"
-             >>> applyTemplateCompiler "templates/master.html"
-             >>> relativizeUrlsCompiler
-
+             >>> pageLayoutCompiler
     -- Tags
     create "tags" $ requireAll "posts/*" (\_ ps -> readTags ps :: Tags String)
 
@@ -43,12 +35,10 @@ main = hakyllWith config $ do
         >>> arr tagsMap
         >>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))
 
-
      -- Render RSS feed
     match "rss.xml" $ route idRoute
     create "rss.xml" $ requireAll_ "posts/*"
             >>> renderRss feedConfiguration
-
 
     -- Static pages are located in pages/
     match "pages/*" $ do
@@ -58,8 +48,7 @@ main = hakyllWith config $ do
                 [ ("pages/index.md", addRelatedToAs "posts/*" "Recent blog entries")
 --              , ("pages/research.md", addRelatedToAs "tags/research" "Related recent blog entries")
                 ]
-            >>> applyTemplateCompiler "templates/master.html"
-            >>> relativizeUrlsCompiler
+            >>> pageLayoutCompiler
 
     -- CSS
     match "css/*" $ do
@@ -72,16 +61,26 @@ main = hakyllWith config $ do
   where
     tagIdentifier = fromCapture "tags/*"
 
-
 -- * Auxiliary compilers
+articlePageCompiler :: Compiler (Page String) (Page String)
+articlePageCompiler = arr (renderDateField "date" "%B %e, %Y" "Date unknown")
+            >>> arr (renderDateField "machinedate" (iso8601DateFormat Nothing) "")
+            >>> renderModificationTime "updated" "%B %e, %Y"
+            >>> renderModificationTime "machineupdated" (iso8601DateFormat Nothing)
+            >>> renderTagsField "prettytags" (fromCapture "tags/*")
+            >>> applyTemplateCompiler "templates/article.html"
+
+pageLayoutCompiler :: Compiler (Page String) (Page String)
+pageLayoutCompiler = applyTemplateCompiler "templates/master.html"
+                 >>> relativizeUrlsCompiler
+
 makeTagList :: String -> [Page String] -> Compiler () (Page String)
 makeTagList tag posts = constA posts
         >>> pageListCompiler recentFirst "templates/archive-item.html"
         >>> arr (copyBodyToField "posts" . fromBody)
         >>> arr (setField "title" ("Posts tagged as " ++ tag))
         >>> applyTemplateCompiler "templates/archive.html"
-        >>> applyTemplateCompiler "templates/master.html"
-        >>> relativizeUrlsCompiler
+        >>> pageLayoutCompiler
 
 addRelatedToAs :: Pattern (Page String) -> String -> Compiler (Page String) (Page String)
 addRelatedToAs p t = setFieldPageList (take newestEntries . recentFirst) "templates/archive-item.html" "posts" p
