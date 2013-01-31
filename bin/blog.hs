@@ -1,109 +1,134 @@
 {-# LANGUAGE OverloadedStrings #-}
-
 module Main where
 
-import Control.Arrow ((>>>), arr)
-import Data.Monoid (mempty, mconcat)
+import Data.Functor ((<$>))
+import Data.Monoid (mconcat)
 import System.Locale (iso8601DateFormat)
 
 import Hakyll
 
 main :: IO ()
 main = hakyllWith config $ do
+    -- Build tags
+    tags <- buildTags "posts/*" (fromCapture "tags/*.html")
 
-    -- Blog posts are under posts/
-    match "posts/*" $ do
-        route $ setExtension "html"
-        compile $ pageCompiler
-             >>> articlePageCompiler
-             >>> pageLayoutCompiler
-
-    -- Blog archive
-    match "archive.html" $ do
-        route idRoute
-        create "archive.html" $ constA mempty
-             >>> arr (setField "title" "Blog archive")
-             >>> setFieldPageList recentFirst "templates/archive-item.html" "posts" "posts/*"
-             >>> applyTemplateCompiler "templates/archive.html"
-             >>> pageLayoutCompiler
-    -- Tags
-    create "tags" $ requireAll "posts/*" (\_ ps -> readTags ps :: Tags String)
-
-    -- Add a tag list compiler for every tag
-    match "tags/*" $ route $ setExtension ".html"
-    metaCompile $ require_ "tags"
-        >>> arr tagsMap
-        >>> arr (map (\(t, p) -> (tagIdentifier t, makeTagList t p)))
-
-     -- Render RSS feed
-    match "rss.xml" $ route idRoute
-    create "rss.xml" $ requireAll_ "posts/*"
-            >>> renderRss feedConfiguration
-
-    -- Static pages are located in pages/
-    match "pages/*" $ do
-        route $ gsubRoute "pages/" (const "") `composeRoutes` setExtension "html"
-        compile $ pageCompiler
-            >>> byPattern (arr id)
-                [ ("pages/index.md", addRelatedToAs "posts/*" "Recent blog entries")
---              , ("pages/research.md", addRelatedToAs "tags/research" "Related recent blog entries")
-                ]
-            >>> pageLayoutCompiler
-
-    -- CSS
+    -- Compress CSS
     match "css/*" $ do
-        route idRoute
+        route   idRoute
         compile compressCssCompiler
 
-    -- Templates
+    -- Copy Files
+    match "files/*" $ do
+        route   idRoute
+        compile copyFileCompiler
+
+    -- Render posts
+    match "posts/*" $ do
+        route   $ setExtension ".html"
+        compile $ pandocCompiler
+            >>= loadAndApplyTemplate "templates/post.html" (tagsCtx tags)
+            >>= saveSnapshot "content"
+            >>= loadAndApplyTemplate "templates/default.html" (tagsCtx tags)
+            >>= relativizeUrls
+
+    -- Render posts list
+    create ["archive.html"] $ do
+        route idRoute
+        compile $ do
+            posts <- recentFirst <$> loadAll "posts/*"
+            itemTpl <- loadBody "templates/archive-item.html"
+            list <- applyTemplateList itemTpl postCtx posts
+            makeItem list
+                >>= loadAndApplyTemplate "templates/archive.html" allPostsCtx
+                >>= loadAndApplyTemplate "templates/default.html" allPostsCtx
+                >>= relativizeUrls
+
+    -- Static pages
+    match "pages/*" $ do
+        route $ gsubRoute "pages/" (const "") `composeRoutes` setExtension "html"
+        compile $ pandocCompiler
+                >>= loadAndApplyTemplate "templates/default.html" defaultContext
+                >>= relativizeUrls
+            
+
+    -- Post tags
+    tagsRules tags $ \tag pattern -> do
+        let title = "Posts tagged " ++ tag
+        route idRoute
+        compile $ do
+            list <- postList tags pattern recentFirst
+            makeItem ""
+                >>= loadAndApplyTemplate "templates/archive.html" (
+                        mconcat [ constField "title" title
+                                , constField "body" list
+                                , defaultContext
+                                ])
+                >>= loadAndApplyTemplate "templates/default.html"
+                        (mconcat [ constField "title" title
+                                 , defaultContext
+                                 ])
+                >>= relativizeUrls
+
+
+    -- Render RSS feed
+    create ["rss.xml"] $ do
+        route idRoute
+        compile $ do
+            posts <- take 10 . recentFirst <$> loadAllSnapshots "posts/*" "content"
+            renderRss feedConfiguration feedCtx posts
+
+    create ["atom.xml"] $ do
+        route idRoute
+        compile $ do
+            posts <- take 10 . recentFirst <$> loadAllSnapshots "posts/*" "content"
+            renderAtom feedConfiguration feedCtx posts
+
+    -- Read templates
     match "templates/*" $ compile templateCompiler
 
-  where
-    tagIdentifier = fromCapture "tags/*"
+postCtx :: Context String
+postCtx = mconcat [ dateField "machinedate" (iso8601DateFormat Nothing)
+                  , dateField "date" "%B %e, %Y"
+                  , dateField "dateday" "%d"
+                  , dateField "datemonth" "%b"
+                  , dateField "dateyear" "%Y"
+                  , defaultContext
+                  ]
 
--- * Auxiliary compilers
-articlePageCompiler :: Compiler (Page String) (Page String)
-articlePageCompiler = arr (renderDateField "date" "%B %e, %Y" "Date unknown")
-            >>> arr (renderDateField "machinedate" (iso8601DateFormat Nothing) "")
-            >>> renderModificationTime "updated" "%B %e, %Y"
-            >>> renderModificationTime "machineupdated" (iso8601DateFormat Nothing)
-            >>> renderTagsField "prettytags" (fromCapture "tags/*")
-            >>> applyTemplateCompiler "templates/article.html"
+allPostsCtx :: Context String
+allPostsCtx = mconcat [ constField "title" "All posts"
+                      , postCtx
+                      ]
 
-pageLayoutCompiler :: Compiler (Page String) (Page String)
-pageLayoutCompiler = applyTemplateCompiler "templates/master.html"
-                 >>> relativizeUrlsCompiler
+feedCtx :: Context String
+feedCtx = mconcat [ postCtx
+                  , metadataField
+                  ]
 
-makeTagList :: String -> [Page String] -> Compiler () (Page String)
-makeTagList tag posts = constA posts
-        >>> pageListCompiler recentFirst "templates/archive-item.html"
-        >>> arr (copyBodyToField "posts" . fromBody)
-        >>> arr (setField "title" ("Posts tagged as " ++ tag))
-        >>> applyTemplateCompiler "templates/archive.html"
-        >>> pageLayoutCompiler
+tagsCtx :: Tags -> Context String
+tagsCtx tags = mconcat [ tagsField "prettytags" tags
+                       , postCtx
+                       ]
 
-addRelatedToAs :: Pattern (Page String) -> String -> Compiler (Page String) (Page String)
-addRelatedToAs p t = setFieldPageList (take newestEntries . recentFirst) "templates/archive-item.html" "posts" p
-        >>> arr (setField "related" t)
-        >>> applyTemplateCompiler "templates/related.html"
-
-
--- * Configuration
-config :: HakyllConfiguration
-config = defaultHakyllConfiguration {
+config :: Configuration
+config = defaultConfiguration {
     deployCommand = " rsync --checksum -ave 'ssh' \
                     \_site/* jtanguy@jhome.fr:sites/julien.jhome.fr"
     }
 
-newestEntries :: Int
-newestEntries = 3
-
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
-    { feedTitle = "jtanguy :: Blogger"
+    { feedTitle = "jtanguy - RSS feed"
     , feedDescription = "Thoughts about random cs-related things."
     , feedAuthorName = "Julien Tanguy"
     , feedAuthorEmail = "julien.tanguy@jhome.fr"
     , feedRoot = "http://julien.jhome.fr"
     }
+
+postList :: Tags -> Pattern -> ([Item String] -> [Item String])
+         -> Compiler String
+postList tags pattern preprocess' = do
+    postItemTpl <- loadBody "templates/archive-item.html"
+    posts <- preprocess' <$> loadAll pattern
+    applyTemplateList postItemTpl (tagsCtx tags) posts
 
