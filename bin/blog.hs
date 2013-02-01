@@ -49,7 +49,16 @@ main = hakyllWith config $ do
         compile $ pandocCompiler
                 >>= loadAndApplyTemplate "templates/default.html" defaultContext
                 >>= relativizeUrls
-            
+
+    -- Project pages
+    match "projects/**.md" $ do
+        route $ setExtension ".html"
+        compile $ pandocCompiler
+                >>= loadAndApplyTemplate "templates/default.html" defaultContext
+                >>= relativizeUrls
+    match ("projects/**" .&&. complement "projects/**.md") $ do
+        route   idRoute
+        compile copyFileCompiler
 
     -- Post tags
     tagsRules tags $ \tag pattern -> do
