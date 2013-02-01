@@ -1,0 +1,3 @@
+[submodule "projects/dtx-aria-bundle"]
+	path = projects/dtx-aria-bundle
+	url = jhome:projects/latex/aria-bundle.git
