@@ -9,3 +9,5 @@ Here is a small list of my currently active projects:
 [dtx-changelist](projects/dtx-changelist/index.html)
 :   A LaTeX package for managing change lists
 
+[hammertime](https://github.com/divarvel/hammertime)
+:   Hammertime is a simple time tracker, initiated by [Clément Delafargue](http://clement.delafargue.name). I have the opportynity to contribute to this project.
