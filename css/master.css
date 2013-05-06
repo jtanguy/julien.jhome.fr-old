@@ -45,6 +45,7 @@ a:visited {
     color: #fd717f;
 }
 .content {
+    position: relative;
     padding: 0.809em;
     max-width: 30em;
     margin: auto;
@@ -111,7 +112,7 @@ a:visited {
 .content h5 {
     font-style: normal;
 }
-.content ul, .content ol {
+.content article section ul, .content article section ol {
     list-style-position: outside;
     padding: 0;
 }
@@ -122,6 +123,17 @@ a:visited {
 }
 .content img, .content object, .content video, .content audio, .content figure, .content iframe {
     max-width: 100%}
+@media all and (min-width: 900px) {
+    article {
+        position: relative;
+    }
+    aside[role="nav"] {
+        position: absolute;
+        width: 20rem;
+        left: -22rem;
+        top: 4em;
+    }
+}
 @media all and (min-width: 33.236em) {
     .content {
     padding: 1.618em;

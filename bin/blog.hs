@@ -4,6 +4,7 @@ module Main where
 import Data.Monoid (mappend, mconcat)
 import System.Locale (iso8601DateFormat)
 
+import Text.Pandoc.Options
 import Hakyll
 
 main :: IO ()
@@ -35,11 +36,20 @@ main = hakyllWith config $ do
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
+    match "posts/*" $ version "toc" $
+       compile $ pandocCompilerWith defaultHakyllReaderOptions
+                                    defaultHakyllWriterOptions {
+                                        writerTableOfContents = True
+                                      , writerTemplate = "$toc$"
+                                      , writerStandalone = True
+                                      }
+        
+
     -- Render posts list
     create ["archive.html"] $ do
         route idRoute
         compile $ do
-            posts <- recentFirst =<< loadAll "posts/*"
+            posts <- recentFirst =<< loadAll ("posts/*" .&&. hasNoVersion)
             itemTpl <- loadBody "templates/archive-item.html"
             list <- applyTemplateList itemTpl postCtx posts
             let archiveCtx = constField "title" "All posts" `mappend`
@@ -85,13 +95,13 @@ main = hakyllWith config $ do
     -- Render RSS feed
     create ["rss.xml"] $ do
         route idRoute
-        compile $ loadAllSnapshots "posts/*" "content"
+        compile $ loadAllSnapshots ("posts/*" .&&. hasNoVersion) "content"
             >>= fmap (take 10) . recentFirst
             >>= renderRss feedConfiguration feedCtx
 
     create ["atom.xml"] $ do
         route idRoute
-        compile $ loadAllSnapshots "posts/*" "content"
+        compile $ loadAllSnapshots ("posts/*" .&&. hasNoVersion) "content"
             >>= fmap (take 10) . recentFirst
             >>= renderAtom feedConfiguration feedCtx
 
@@ -104,6 +114,8 @@ postCtx = mconcat [ dateField "machinedate" (iso8601DateFormat Nothing)
                   , dateField "dateday" "%d"
                   , dateField "datemonth" "%b"
                   , dateField "dateyear" "%Y"
+                  , field "toc" $ \item ->
+                        loadBody ((itemIdentifier item) { identifierVersion = Just "toc"})
                   , defaultContext
                   ]
 
