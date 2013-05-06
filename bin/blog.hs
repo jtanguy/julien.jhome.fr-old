@@ -21,6 +21,11 @@ main = hakyllWith config $ do
         route   idRoute
         compile copyFileCompiler
 
+    -- Copy static assets
+    match "assets/**" $ do
+        route   idRoute
+        compile copyFileCompiler
+
     -- Render posts
     match "posts/*" $ do
         route   $ setExtension ".html"
