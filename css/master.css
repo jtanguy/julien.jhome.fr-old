@@ -45,7 +45,6 @@ a:visited {
     color: #fd717f;
 }
 .content {
-    position: relative;
     padding: 0.809em;
     max-width: 30em;
     margin: auto;
@@ -124,14 +123,11 @@ a:visited {
 .content img, .content object, .content video, .content audio, .content figure, .content iframe {
     max-width: 100%}
 @media all and (min-width: 900px) {
-    article {
-        position: relative;
-    }
-    aside[role="nav"] {
-        position: absolute;
+    .sticky {
+        position: fixed;
         width: 20rem;
-        left: -22rem;
-        top: 4em;
+        left: 5rem;
+        top: 10em;
     }
 }
 @media all and (min-width: 33.236em) {
