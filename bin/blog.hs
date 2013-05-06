@@ -120,7 +120,7 @@ tagsCtx tags = mconcat [ tagsField "prettytags" tags
 
 config :: Configuration
 config = defaultConfiguration {
-    deployCommand = " rsync --checksum -ave 'ssh' \
+    deployCommand = " rsync --checksum --delete -ave 'ssh' \
                     \_site/* jtanguy@jhome.fr:sites/julien.jhome.fr"
     }
 
