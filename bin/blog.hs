@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Data.Functor ((<$>))
 import Data.Monoid (mconcat)
 import System.Locale (iso8601DateFormat)
 
@@ -35,7 +34,7 @@ main = hakyllWith config $ do
     create ["archive.html"] $ do
         route idRoute
         compile $ do
-            posts <- recentFirst <$> loadAll "posts/*"
+            posts <- recentFirst =<< loadAll "posts/*"
             itemTpl <- loadBody "templates/archive-item.html"
             list <- applyTemplateList itemTpl postCtx posts
             makeItem list
@@ -82,15 +81,15 @@ main = hakyllWith config $ do
     -- Render RSS feed
     create ["rss.xml"] $ do
         route idRoute
-        compile $ do
-            posts <- take 10 . recentFirst <$> loadAllSnapshots "posts/*" "content"
-            renderRss feedConfiguration feedCtx posts
+        compile $ loadAllSnapshots "posts/*" "content"
+            >>= fmap (take 10) . recentFirst
+            >>= renderRss feedConfiguration feedCtx
 
     create ["atom.xml"] $ do
         route idRoute
-        compile $ do
-            posts <- take 10 . recentFirst <$> loadAllSnapshots "posts/*" "content"
-            renderAtom feedConfiguration feedCtx posts
+        compile $ loadAllSnapshots "posts/*" "content"
+            >>= fmap (take 10) . recentFirst
+            >>= renderAtom feedConfiguration feedCtx
 
     -- Read templates
     match "templates/*" $ compile templateCompiler
@@ -134,10 +133,10 @@ feedConfiguration = FeedConfiguration
     , feedRoot = "http://julien.jhome.fr"
     }
 
-postList :: Tags -> Pattern -> ([Item String] -> [Item String])
+postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
          -> Compiler String
 postList tags pattern preprocess' = do
     postItemTpl <- loadBody "templates/archive-item.html"
-    posts <- preprocess' <$> loadAll pattern
+    posts <- preprocess' =<< loadAll pattern
     applyTemplateList postItemTpl (tagsCtx tags) posts
 
