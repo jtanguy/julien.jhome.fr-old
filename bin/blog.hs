@@ -99,14 +99,15 @@ main = hakyllWith config $ do
     match "templates/*" $ compile templateCompiler
 
 postCtx :: Context String
-postCtx = mconcat [ dateField "machinedate" (iso8601DateFormat Nothing)
+postCtx = mconcat [ dateField "date.machine" (iso8601DateFormat Nothing)
                   , dateField "date" "%B %e, %Y"
-                  , dateField "dateday" "%d"
-                  , dateField "datemonth" "%b"
-                  , dateField "dateyear" "%Y"
+                  , modificationTimeField "updated.machine" (iso8601DateFormat Nothing)
+                  , modificationTimeField "updated" "%B %e, %Y"
+                  , dateField "date.day" "%d"
+                  , dateField "date.month" "%b"
+                  , dateField "date.year" "%Y"
                   , defaultContext
                   ]
-
 
 feedCtx :: Context String
 feedCtx = mconcat [ postCtx
