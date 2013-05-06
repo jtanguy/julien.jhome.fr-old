@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Data.Monoid (mconcat)
+import Data.Monoid (mappend, mconcat)
 import System.Locale (iso8601DateFormat)
 
 import Hakyll
@@ -27,7 +27,7 @@ main = hakyllWith config $ do
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/post.html" (tagsCtx tags)
             >>= saveSnapshot "content"
-            >>= loadAndApplyTemplate "templates/default.html" (tagsCtx tags)
+            >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
     -- Render posts list
@@ -37,9 +37,11 @@ main = hakyllWith config $ do
             posts <- recentFirst =<< loadAll "posts/*"
             itemTpl <- loadBody "templates/archive-item.html"
             list <- applyTemplateList itemTpl postCtx posts
+            let archiveCtx = constField "title" "All posts" `mappend`
+                             defaultContext
             makeItem list
-                >>= loadAndApplyTemplate "templates/archive.html" allPostsCtx
-                >>= loadAndApplyTemplate "templates/default.html" allPostsCtx
+                >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
+                >>= loadAndApplyTemplate "templates/default.html" defaultContext
                 >>= relativizeUrls
 
     -- Static pages
@@ -71,10 +73,7 @@ main = hakyllWith config $ do
                                 , constField "body" list
                                 , defaultContext
                                 ])
-                >>= loadAndApplyTemplate "templates/default.html"
-                        (mconcat [ constField "title" title
-                                 , defaultContext
-                                 ])
+                >>= loadAndApplyTemplate "templates/default.html" defaultContext
                 >>= relativizeUrls
 
 
@@ -103,10 +102,6 @@ postCtx = mconcat [ dateField "machinedate" (iso8601DateFormat Nothing)
                   , defaultContext
                   ]
 
-allPostsCtx :: Context String
-allPostsCtx = mconcat [ constField "title" "All posts"
-                      , postCtx
-                      ]
 
 feedCtx :: Context String
 feedCtx = mconcat [ postCtx
