@@ -59,9 +59,9 @@ match "pages/*" $ do                                            -- For all pages
 One central element for hakyll is the `Page`. It is basically a body and some metadata, like a title, a date, or an author.
 When compiled, the metadata at the beginning of the input file are extracted, and the body is rendered by pandoc to form a html string.
 
-On the other hand, hakyll has the notion of `Template`. It is a html file with some special named keys, like `$$title$$` or `$$body$$`.
+On the other hand, hakyll has the notion of `Template`. It is a html file with some special named keys, like `$title$` or `$body$`.
 When applying a template for a page, all metadata contents are inserted in place of the corresponding key.
-The contents of the file are inserted in the `$$body$$` key.
+The contents of the file are inserted in the `$body$` key.
 
 We can combine the previous two thing because all the different compilers --- `pageCompiler`, `applyTemplateCompiler` and `relativizeUrlsCompiler` --- are *arrows*.
 Arrows can be viewed as a machine which has an input and an output.
@@ -130,7 +130,7 @@ match "archive.html" $ do  -- We match the special route archive.html
 ~~~~
 
 The archive rule tells hakyll to create a new empty page, fill in some metadata, add a compiled list of posts matching a certain pattern --- here we have `posts/*` ---
-in the `$$posts$$` key, and apply templates and post-processing like we saw before.
+in the `$posts$` key, and apply templates and post-processing like we saw before.
 
 ## Tagging
 
@@ -138,6 +138,7 @@ To help grouping related posts, we want to add some tags to posts.
 We will add this into the medatada --- for example this entry is tagged with [haskell](/tags/haskell.html), obviously.
 
 We will want to add two features:
+
 - make a list of all posts tagged for a specific tag, for every tag, and
 - add a link to the tag list page in blog entries.
 

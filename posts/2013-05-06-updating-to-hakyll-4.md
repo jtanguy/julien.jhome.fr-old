@@ -9,9 +9,9 @@ Two months after the release of hakyll 4, I finally updated my blog hakyll-4.2.2
 
 # Visual design
 
-As you may have noticed, the design has quite changed. I took a lot of design ideas from <http://gist.io>.
+As you may have noticed, the design has changed. I took a lot of design ideas from <http://gist.io>.
 
-You may also noticed the small icons on the site header. These are provided by
+There are also some small icons on the site header. These are provided by
 [font awsome](http://fortawesome.github.io/Font-Awesome), an iconic font designed for Twitter Bootstrap. I may include more of these icons in the future.
 
 # Projects page
@@ -33,4 +33,4 @@ It makes things much simpler.
 Metadata fields in pages (for example the title, author, tags, etc.) now belong to a certain `Context`.
 This makes templating easier _and_ more powerful, and there are already [some cool crazy websites](http://blog.clement.delafargue.name/posts/2013-04-03-web2day-powered-by-hakyll-part-1.html) implemented.
 
-I have also some things in preparation, like adding a table of contents into contexts, and [other things I had already in mind](/posts/2012-12-05-making-my-blog.html).
+I have also some things in preparation, like adding a table of contents into contexts, and [other things I had already in mind](/posts/2012-12-05-making-my-blog.html#the-future).
