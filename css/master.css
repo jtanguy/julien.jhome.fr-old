@@ -128,14 +128,6 @@ a:visited {
 }
 .content img, .content object, .content video, .content audio, .content figure, .content iframe {
     max-width: 100%}
-@media all and (min-width: 900px) {
-    .sticky {
-        position: fixed;
-        width: 20rem;
-        left: 5rem;
-        top: 10em;
-    }
-}
 @media all and (min-width: 33.236em) {
     .content {
     padding: 1.618em;
