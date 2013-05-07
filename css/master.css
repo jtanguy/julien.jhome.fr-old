@@ -70,6 +70,9 @@ a:visited {
     font-size: 1em;
 }
 .site-header nav a {
+    color: #ccc;
+}
+.site-header a {
     display: inline-block;
     color: #ccc;
     text-decoration: none;
@@ -77,7 +80,7 @@ a:visited {
 .site-header nav a:not(:last-child) {
     margin-right: 1em;
 }
-.site-header nav a:hover {
+.site-header a:hover {
     text-decoration: underline;
 }
 
@@ -96,7 +99,10 @@ a:visited {
     margin-top: 2em;
     color: black;
 }
-.content h1, .content h2 {
+.content h1 {
+    font-size: 2em;
+}
+.content h2 {
     font-size: 1.5em;
 }
 .content h3 {
@@ -150,6 +156,7 @@ a:visited {
     display: inline-block;
     margin: 0;
     vertical-align: top;
+    font-size:3em;
 }
 .meta {
     color: #888;
