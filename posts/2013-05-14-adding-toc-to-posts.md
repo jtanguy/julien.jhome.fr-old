@@ -1,5 +1,5 @@
 ---
-title: Adding TOC to posts
+title: Adding TOC to posts using contexts and versions
 date: 2013-05-14
 author: Julien Tanguy
 description: Adding a table of contents to post contexts
