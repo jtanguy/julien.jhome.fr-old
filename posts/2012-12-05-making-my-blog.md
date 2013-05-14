@@ -2,7 +2,7 @@
 title: Making my blog
 author: Julien Tanguy
 description: Process of creating this site and blog.
-tags: haskell
+tags: haskell, meta
 ---
 
 There has been quite some time since I wanted to open a blog.

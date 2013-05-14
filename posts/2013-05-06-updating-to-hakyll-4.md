@@ -2,7 +2,7 @@
 title: Updating to Hakyll 4
 author: Julien Tanguy
 description: Updating this blog to hakyll 4
-tags: haskell
+tags: haskell, meta
 ---
 
 Two months after the release of hakyll 4, I finally updated my blog hakyll-4.2.2.0. Let's view the major changes.
