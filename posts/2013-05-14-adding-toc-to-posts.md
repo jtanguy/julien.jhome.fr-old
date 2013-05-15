@@ -32,7 +32,7 @@ match "posts/*" $ do
                                   , writerTemplate = unlines
                                                    [ "Table of contents"
                                                    , "$toc$"
-                                                   , "$body"
+                                                   , "$body$"
                                                    ]
                                   , writerStandalone = True
                                   }
