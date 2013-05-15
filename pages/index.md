@@ -10,7 +10,7 @@ More about this in the [research page](/research.html).
 - On Twitter: [\@jutanguy](http://twitter.com/jutanguy)
 - On Linkedin: [jutanguy](http://www.linkedin.com/in/jutanguy)
 - On Github: [jtanguy](http://github.com/jtanguy)
-- By email: <julien.tanguy@jhome.fr>
+- By email: <julien.tanguy@jhome.fr> ([<i class="icon-key"></i>gpg](/assets/gpg/pubkey.txt))
 - By mail: 5A, Avenue de l'Alverne\
     44300 Nantes - France
 
