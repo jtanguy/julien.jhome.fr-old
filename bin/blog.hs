@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Control.Monad (liftM)
+import Data.Maybe (fromMaybe)
 import Data.Monoid (mappend, mconcat)
 import System.Locale (iso8601DateFormat)
 
@@ -62,7 +64,20 @@ main = hakyllWith config $ do
     -- Static pages
     match "pages/*" $ do
         route $ gsubRoute "pages/" (const "") `composeRoutes` setExtension "html"
-        compile $ pandocCompiler
+        compile $ do
+            item <- getUnderlying
+            title <- liftM (fromMaybe "Related posts") $ getMetadataField item "relatedTitle"
+            related <- liftM (fromMaybe "") $ getMetadataField item "related"
+            list <- if related == "*" then
+                        postList tags ("posts/*" .&&. hasNoVersion) recentFirst
+                    else let items = fromMaybe [] $ lookup related (tagsMap tags)
+                         in postList tags (fromList items) recentFirst
+
+            let relatedCtx = constField "related.title" title `mappend`
+                             constField "related" list `mappend`
+                             defaultContext
+            pandocCompiler
+                >>= loadAndApplyTemplate "templates/related.html" relatedCtx
                 >>= loadAndApplyTemplate "templates/default.html" defaultContext
                 >>= relativizeUrls
 
@@ -150,6 +165,6 @@ postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
          -> Compiler String
 postList tags pattern preprocess' = do
     postItemTpl <- loadBody "templates/archive-item.html"
-    posts <- preprocess' =<< loadAll pattern
+    posts <- preprocess' =<< loadAll (pattern .&&. hasNoVersion)
     applyTemplateList postItemTpl (tagsCtx tags) posts
 

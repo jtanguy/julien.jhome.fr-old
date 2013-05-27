@@ -1,5 +1,7 @@
 ---
 title: About me
+related: *
+relatedTitle: Latest posts
 ---
 
 I am a PhD student working for [See4sys](http://www.see4sys.com) and [IRCCyN](http://www.irccyn.ec-nantes.fr).
