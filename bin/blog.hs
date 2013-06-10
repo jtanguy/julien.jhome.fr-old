@@ -120,6 +120,15 @@ main = hakyllWith config $ do
             >>= fmap (take 10) . recentFirst
             >>= renderAtom feedConfiguration feedCtx
 
+    create ["sitemap.xml"] $ do
+        route idRoute
+        compile $ do
+            posts <- loadAll (("pages/*" .||. "posts/*" .||. "projects/**.md") .&&. hasNoVersion)
+            itemTpl <- loadBody "templates/sitemap-item.xml"
+            list <- applyTemplateList itemTpl (sitemapCtx feedConfiguration) posts
+            makeItem list
+                >>= loadAndApplyTemplate "templates/sitemap.xml" defaultContext
+
     -- Read templates
     match "templates/*" $ compile templateCompiler
 
@@ -145,6 +154,11 @@ tagsCtx :: Tags -> Context String
 tagsCtx tags = mconcat [ tagsField "prettytags" tags
                        , postCtx
                        ]
+
+sitemapCtx :: FeedConfiguration -> Context String
+sitemapCtx conf = mconcat [ constField "root" (feedRoot conf)
+                          , feedCtx
+                          ]
 
 config :: Configuration
 config = defaultConfiguration {
