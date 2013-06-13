@@ -123,7 +123,8 @@ main = hakyllWith config $ do
     create ["sitemap.xml"] $ do
         route idRoute
         compile $ do
-            posts <- loadAll (("pages/*" .||. "posts/*" .||. "projects/**.md") .&&. hasNoVersion)
+            posts <- loadAll (("pages/*" .||. "posts/*" .||. "projects/**.md")
+                              .&&. hasNoVersion)
             itemTpl <- loadBody "templates/sitemap-item.xml"
             list <- applyTemplateList itemTpl (sitemapCtx feedConfiguration) posts
             makeItem list
