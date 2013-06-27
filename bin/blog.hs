@@ -67,6 +67,7 @@ main = hakyllWith config $ do
             title <- liftM (fromMaybe "Related posts") $ getMetadataField item "relatedTitle"
             related <- liftM (fromMaybe "") $ getMetadataField item "related"
             bibFile <- liftM (fromMaybe "") $ getMetadataField item "biblio"
+            cslFile <- liftM (fromMaybe "chicago") $ getMetadataField item "csl"
             list <- if related == "*" then
                         postList tags ("posts/*" .&&. hasNoVersion) recentFirst
                     else let items = fromMaybe [] $ lookup related (tagsMap tags)
@@ -74,7 +75,9 @@ main = hakyllWith config $ do
             let relatedCtx = constField "related.title" title `mappend`
                              constField "related" list `mappend`
                              defaultContext
-            let compiler = if bibFile /= "" then bibtexCompiler bibFile else pandocCompiler
+            let compiler = if bibFile /= "" then
+                                bibtexCompiler cslFile bibFile
+                           else pandocCompiler
             compiler
                 >>= loadAndApplyTemplate "templates/related.html" relatedCtx
                 >>= pageCompiler
@@ -138,10 +141,10 @@ pageCompiler :: Item String -> Compiler (Item String)
 pageCompiler i = loadAndApplyTemplate "templates/default.html" defaultContext i
                >>= relativizeUrls
 
-bibtexCompiler :: String -> Compiler (Item String)
-bibtexCompiler bibFileName = do 
-    csl <- load "assets/bib/chicago.csl"
-    bib <- load (fromFilePath $ "assets/bib/"++bibFileName++".bib")
+bibtexCompiler :: String -> String -> Compiler (Item String)
+bibtexCompiler cslFileName bibFileName = do 
+    csl <- load (fromFilePath $ "assets/bib/"++cslFileName)
+    bib <- load (fromFilePath $ "assets/bib/"++bibFileName)
     liftM writePandoc
         (getResourceBody >>= readPandocBiblio def (Just csl) bib)
 
