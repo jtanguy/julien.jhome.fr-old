@@ -19,13 +19,13 @@ main = hakyllWith config $ do
         route   $ gsubRoute "assets/" (const "") `composeRoutes` idRoute
         compile compressCssCompiler
 
-    -- Copy Files
-    match "files/*" $ do
-        route   idRoute
-        compile copyFileCompiler
+    -- Bibtex entries (for bibliography)
+    match "assets/bib/*.bib" $ compile biblioCompiler
+
+    match "assets/bib/*.csl" $ compile cslCompiler
 
     -- Copy static assets
-    match "assets/**" $ do
+    match "assets/files/*" $ do
         route   idRoute
         compile copyFileCompiler
 
@@ -66,15 +66,16 @@ main = hakyllWith config $ do
             item <- getUnderlying
             title <- liftM (fromMaybe "Related posts") $ getMetadataField item "relatedTitle"
             related <- liftM (fromMaybe "") $ getMetadataField item "related"
+            bibFile <- liftM (fromMaybe "") $ getMetadataField item "biblio"
             list <- if related == "*" then
                         postList tags ("posts/*" .&&. hasNoVersion) recentFirst
                     else let items = fromMaybe [] $ lookup related (tagsMap tags)
                          in postList tags (fromList items) recentFirst
-
             let relatedCtx = constField "related.title" title `mappend`
                              constField "related" list `mappend`
                              defaultContext
-            pandocCompiler
+            let compiler = if bibFile /= "" then bibtexCompiler bibFile else pandocCompiler
+            compiler
                 >>= loadAndApplyTemplate "templates/related.html" relatedCtx
                 >>= pageCompiler
 
@@ -136,6 +137,13 @@ main = hakyllWith config $ do
 pageCompiler :: Item String -> Compiler (Item String)
 pageCompiler i = loadAndApplyTemplate "templates/default.html" defaultContext i
                >>= relativizeUrls
+
+bibtexCompiler :: String -> Compiler (Item String)
+bibtexCompiler bibFileName = do 
+    csl <- load "assets/bib/chicago.csl"
+    bib <- load (fromFilePath $ "assets/bib/"++bibFileName++".bib")
+    liftM writePandoc
+        (getResourceBody >>= readPandocBiblio def (Just csl) bib)
 
 postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
          -> Compiler String
