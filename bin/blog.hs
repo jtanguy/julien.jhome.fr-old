@@ -15,8 +15,8 @@ main = hakyllWith config $ do
     tags <- buildTags "posts/*" (fromCapture "tags/*.html")
 
     -- Compress CSS
-    match "css/*" $ do
-        route   idRoute
+    match "assets/css/*" $ do
+        route   $ gsubRoute "assets/" (const "") `composeRoutes` idRoute
         compile compressCssCompiler
 
     -- Copy Files
