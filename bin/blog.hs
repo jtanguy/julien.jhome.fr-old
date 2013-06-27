@@ -35,8 +35,7 @@ main = hakyllWith config $ do
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/post.html" (tagsCtx tags)
             >>= saveSnapshot "content"
-            >>= loadAndApplyTemplate "templates/default.html" defaultContext
-            >>= relativizeUrls
+            >>= pageCompiler
 
     match "posts/*" $ version "toc" $
        compile $ pandocCompilerWith defaultHakyllReaderOptions
@@ -58,8 +57,7 @@ main = hakyllWith config $ do
                              defaultContext
             makeItem list
                 >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-                >>= loadAndApplyTemplate "templates/default.html" defaultContext
-                >>= relativizeUrls
+                >>= pageCompiler
 
     -- Static pages
     match "pages/*" $ do
@@ -78,15 +76,14 @@ main = hakyllWith config $ do
                              defaultContext
             pandocCompiler
                 >>= loadAndApplyTemplate "templates/related.html" relatedCtx
-                >>= loadAndApplyTemplate "templates/default.html" defaultContext
-                >>= relativizeUrls
+                >>= pageCompiler
+
 
     -- Project pages
     match "projects/**.md" $ do
         route $ setExtension ".html"
-        compile $ pandocCompiler
-                >>= loadAndApplyTemplate "templates/default.html" defaultContext
-                >>= relativizeUrls
+        compile $ pandocCompiler >>= pageCompiler
+
     match ("projects/**" .&&. complement "projects/**.md") $ do
         route   idRoute
         compile copyFileCompiler
@@ -103,9 +100,7 @@ main = hakyllWith config $ do
                                 , constField "body" list
                                 , defaultContext
                                 ])
-                >>= loadAndApplyTemplate "templates/default.html" defaultContext
-                >>= relativizeUrls
-
+                >>= pageCompiler
 
     -- Render RSS feed
     create ["rss.xml"] $ do
@@ -137,6 +132,19 @@ main = hakyllWith config $ do
     -- Read templates
     match "templates/*" $ compile templateCompiler
 
+-- Auxiliary compilers
+pageCompiler :: Item String -> Compiler (Item String)
+pageCompiler i = loadAndApplyTemplate "templates/default.html" defaultContext i
+               >>= relativizeUrls
+
+postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
+         -> Compiler String
+postList tags pattern preprocess' = do
+    postItemTpl <- loadBody "templates/archive-item.html"
+    posts <- preprocess' =<< loadAll (pattern .&&. hasNoVersion)
+    applyTemplateList postItemTpl (tagsCtx tags) posts
+
+-- Contexts
 postCtx :: Context String
 postCtx = mconcat [ dateField "date.machine" (iso8601DateFormat Nothing)
                   , dateField "date" "%B %e, %Y"
@@ -165,6 +173,7 @@ sitemapCtx conf = mconcat [ constField "root" (feedRoot conf)
                           , feedCtx
                           ]
 
+-- Configuration
 config :: Configuration
 config = defaultConfiguration {
     deployCommand = " rsync --checksum --delete -ave 'ssh' \
@@ -179,11 +188,4 @@ feedConfiguration = FeedConfiguration
     , feedAuthorEmail = "julien.tanguy@jhome.fr"
     , feedRoot = "http://julien.jhome.fr"
     }
-
-postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
-         -> Compiler String
-postList tags pattern preprocess' = do
-    postItemTpl <- loadBody "templates/archive-item.html"
-    posts <- preprocess' =<< loadAll (pattern .&&. hasNoVersion)
-    applyTemplateList postItemTpl (tagsCtx tags) posts
 
