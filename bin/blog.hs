@@ -20,9 +20,9 @@ main = hakyllWith config $ do
         compile compressCssCompiler
 
     -- Bibtex entries (for bibliography)
-    match "assets/bib/*.bib" $ compile biblioCompiler
+    match "assets/bib/*" $ compile biblioCompiler
 
-    match "assets/bib/*.csl" $ compile cslCompiler
+    match "assets/csl/*" $ compile cslCompiler
 
     -- Copy static assets
     match "assets/files/*" $ do
@@ -143,7 +143,7 @@ pageCompiler i = loadAndApplyTemplate "templates/default.html" defaultContext i
 
 bibtexCompiler :: String -> String -> Compiler (Item String)
 bibtexCompiler cslFileName bibFileName = do 
-    csl <- load (fromFilePath $ "assets/bib/"++cslFileName)
+    csl <- load (fromFilePath $ "assets/csl/"++cslFileName)
     bib <- load (fromFilePath $ "assets/bib/"++bibFileName)
     liftM writePandoc
         (getResourceBody >>= readPandocBiblio def (Just csl) bib)
