@@ -129,8 +129,8 @@ main = hakyllWith config $ do
             makeItem list
                 >>= loadAndApplyTemplate "templates/sitemap.xml" defaultContext
 
-    match "robots.txt" $ do
-        route idRoute
+    match "assets/txt/*" $ do
+        route $ gsubRoute "assets/txt/" (const "")
         compile copyFileCompiler
 
     -- Read templates
