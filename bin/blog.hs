@@ -146,7 +146,7 @@ bibtexCompiler cslFileName bibFileName = do 
     csl <- load (fromFilePath $ "assets/csl/"++cslFileName)
     bib <- load (fromFilePath $ "assets/bib/"++bibFileName)
     liftM writePandoc
-        (getResourceBody >>= readPandocBiblio def (Just csl) bib)
+        (getResourceBody >>= readPandocBiblio def csl bib)
 
 postList :: Tags -> Pattern -> ([Item String] -> Compiler [Item String])
          -> Compiler String
