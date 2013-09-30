@@ -44,7 +44,7 @@ main = hakyllWith config $ do
                                       , writerTemplate = "$toc$"
                                       , writerStandalone = True
                                       }
-        
+
 
     -- Render posts list
     create ["archive.html"] $ do
